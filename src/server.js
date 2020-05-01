@@ -2,8 +2,11 @@ const WebSocket = require('ws');
 
 const webSocketServer = new WebSocket.Server({ port: (process.env.PORT || 8080) });
 
+let id=false;
+
 webSocketServer.on('connection', (webSocket) => {
 
+  
   //webSocket.send(JSON.stringify({ type: 'system', message:'Conectado'} ))
   
   
@@ -12,14 +15,32 @@ webSocketServer.on('connection', (webSocket) => {
     broadcast(message);
   });
 
+  
 
-  // Esto es para que Heroku no se me duerma, cada 10 segundos mando un mensaje vano
-  setInterval(() => {
-    webSocketServer.clients.forEach((client) => {
-      client.send(new Date().toTimeString());
-    });
-  }, 10000);
+  // Esto es para que Heroku no se  duerma y mantenga las conexiones abiertas aunque no se manden mensajes,
+  //cada 15 segundos y mientras tenga al menos un cliente, mando a cada cliente conectado un mensaje "vano"
+  
+  if(!id)
+  {
+      let cont=0;
+      id=setInterval(() => {
+      
+      webSocketServer.clients.forEach((client) => {
+        cont++
+        client.send(new Date().toTimeString());
+      });
+      console.log(cont)
+      if(cont==0)
+      {
+        clearInterval(id);
+        id=false;
+      }
+      cont=0;
+    }, 15000);
+  }
 });
+
+
 
 function broadcast(data) {
   webSocketServer.clients.forEach((client) => {
