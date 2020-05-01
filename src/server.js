@@ -13,12 +13,12 @@ webSocketServer.on('connection', (webSocket) => {
   });
 
 
-  // Esto es para que Heroku no se me duerma
+  // Esto es para que Heroku no se me duerma, cada 10 segundos mando un mensaje vano
   setInterval(() => {
     webSocketServer.clients.forEach((client) => {
       client.send(new Date().toTimeString());
     });
-  }, 1000);
+  }, 10000);
 });
 
 function broadcast(data) {
