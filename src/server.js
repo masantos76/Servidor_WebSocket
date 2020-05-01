@@ -29,7 +29,7 @@ webSocketServer.on('connection', (webSocket) => {
         cont++
         client.send(new Date().toTimeString());
       });
-      console.log(cont)
+      
       if(cont==0)
       {
         clearInterval(id);
