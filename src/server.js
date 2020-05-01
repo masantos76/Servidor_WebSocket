@@ -11,6 +11,14 @@ webSocketServer.on('connection', (webSocket) => {
     console.log('Received:', message);
     broadcast(message);
   });
+
+
+  // Esto es para que Heroku no se me duerma
+  setInterval(() => {
+    webSocketServer.clients.forEach((client) => {
+      client.send(new Date().toTimeString());
+    });
+  }, 1000);
 });
 
 function broadcast(data) {
