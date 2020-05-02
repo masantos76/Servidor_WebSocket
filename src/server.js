@@ -1,20 +1,45 @@
 const WebSocket = require('ws');
+require('dotenv').config();
 
-const webSocketServer = new WebSocket.Server({ port: (process.env.PORT || 8080) });
+
+
+const webSocketServer = new WebSocket.Server({ port: process.env.PORT  });
+const jwt = require('jsonwebtoken');
+
+
+/*const token = jwt.sign({name:'usuario'},process.env.CLAVE_SECRETA,{
+  expiresIn : 15 * 24 * 60 * 60  // 15 days
+})
+*/
+
+
 
 let id=false;
 
-webSocketServer.on('connection', (webSocket) => {
 
+webSocketServer.on('connection', function(ws) {
+    ws.on('message', toEvent)
+    .on('authenticate', function (data) {
+      jwt.verify(data.token, process.env.CLAVE_SECRETA, function (err, decoded) {
+      
+          if (err) {
+            ws.send(JSON.stringify({ type: 'system2', message:'No Autorizado'} ))
+        } else {
+          ws.userId= decoded.name 
+            
+        }
+      })
+    
+    })
+    .on('usermsg',function(data){
+      if(ws.userId){
+          //user previously authenticated - update 
+          broadcast(data)
+          }
+      })  
+    
+    
   
-  //webSocket.send(JSON.stringify({ type: 'system', message:'Conectado'} ))
-  
-  
-  webSocket.on('message', (message) => {
-    console.log('Received:', message);
-    broadcast(message);
-  });
-
   
 
   // Esto es para que Heroku no se  duerma y mantenga las conexiones abiertas aunque no se manden mensajes,
@@ -27,7 +52,8 @@ webSocketServer.on('connection', (webSocket) => {
       
       webSocketServer.clients.forEach((client) => {
         cont++
-        client.send(new Date().toTimeString());
+        
+        client.send(JSON.stringify({ type: 'no_sleep', message: new Date().toTimeString()}));
       });
       
       if(cont==0)
@@ -40,7 +66,15 @@ webSocketServer.on('connection', (webSocket) => {
   }
 });
 
-
+function toEvent (message) {
+  try {
+    let {type, payload} = JSON.parse(message)
+    
+    this.emit(type, payload || message)
+  } catch (ignore) {
+    this.emit(undefined, message)
+  }
+}
 
 function broadcast(data) {
   webSocketServer.clients.forEach((client) => {
