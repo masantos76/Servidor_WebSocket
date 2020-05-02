@@ -43,7 +43,7 @@ webSocketServer.on('connection', function(ws) {
   
 
   // Esto es para que Heroku no se  duerma y mantenga las conexiones abiertas aunque no se manden mensajes,
-  //cada 15 segundos y mientras tenga al menos un cliente, mando a cada cliente conectado un mensaje "vano"
+  // Cada 15 segundos y mientras tenga al menos un cliente, mando a cada cliente conectado un mensaje "vano"
   
   if(!id)
   {
